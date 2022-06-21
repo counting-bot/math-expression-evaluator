@@ -1,3 +1,5 @@
+const eRegex = new RegExp("[^e]");
+
 class Mexp {
     constructor(parsed) {
         this.value = parsed;
@@ -452,7 +454,7 @@ class Mexp {
         return new Mexp(str);
     }
     static eval(str, tokens, obj) {
-        if (str === "e") return str;
+        if (!eRegex.test(str)) return str;
         if (typeof tokens === "undefined") return this.lex(str).toPostfix().postfixEval();
         if (typeof obj === "undefined") {
             if (typeof tokens.length !== "undefined") return this.lex(str, tokens).toPostfix().postfixEval();
