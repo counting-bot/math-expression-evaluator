@@ -1,53 +1,10 @@
 const eRegex = new RegExp("[^e]");
 
-class Mexp {
+export default class Mexp {
     constructor(parsed) {
         this.value = parsed;
     }
-    formulaEval() {
-        let pop1, pop2, pop3;
-        let disp = [];
-        let arr = this.value;
-        for (let i = 0; i < arr.length; i++) {
-            switch (arr[i].type) {
-                case 1:
-                case 3: formula_evaluator
-                    disp.push({ value: arr[i].type === 3 ? arr[i].show : arr[i].value, type: 1 });
-                    break;
-                case 13:
-                    disp.push({ value: arr[i].show, type: 1 });
-                    break;
-                case 0:
-                    disp[disp.length - 1] = { value: arr[i].show + (arr[i].show != "-" ? "(" : "") + disp[disp.length - 1].value + (arr[i].show != "-" ? ")" : ""), type: 0 };
-                    break;
-                case 7:
-                    disp[disp.length - 1] = { value: (disp[disp.length - 1].type != 1 ? "(" : "") + disp[disp.length - 1].value + (disp[disp.length - 1].type != 1 ? ")" : "") + arr[i].show, type: 7 };
-                    break;
-                case 10:
-                    pop1 = disp.pop();
-                    pop2 = disp.pop();
-                    if (arr[i].show === 'P' || arr[i].show === 'C')
-                        disp.push({ value: "<sup>" + pop2.value + "</sup>" + arr[i].show + "<sub>" + pop1.value + "</sub>", type: 10 });
-                    else
-                        disp.push({ value: (pop2.type != 1 ? "(" : "") + pop2.value + (pop2.type != 1 ? ")" : "") + "<sup>" + pop1.value + "</sup>", type: 1 });
-                    break;
-                case 2:
-                case 9:
-                    pop1 = disp.pop();
-                    pop2 = disp.pop();
-                    disp.push({ value: (pop2.type != 1 ? "(" : "") + pop2.value + (pop2.type != 1 ? ")" : "") + arr[i].show + (pop1.type != 1 ? "(" : "") + pop1.value + (pop1.type != 1 ? ")" : ""), type: arr[i].type });
-                    break;
-                case 12:
-                    pop1 = disp.pop();
-                    pop2 = disp.pop();
-                    pop3 = disp.pop();
-                    disp.push({ value: arr[i].show + "(" + pop3.value + "," + pop2.value + "," + pop1.value + ")", type: 12 });
-                    break;
-            }
-        }
-        return disp[0].value;
-    }
-    postfixEval(UserDefined) {
+    static postfixEval(UserDefined) {
         UserDefined = UserDefined || {};
         UserDefined.PI = Math.PI;
         UserDefined.E = Math.E;
@@ -119,11 +76,11 @@ class Mexp {
             }
         }
         if (stack.length > 1) {
-            throw (new Mexp.Exception("Uncaught Syntax error"));
+            throw "Uncaught Syntax error";
         }
         return stack[0].value > 1000000000000000 ? "Infinity" : parseFloat(stack[0].value.toFixed(15));
     }
-    toPostfix() {
+    static toPostfix() {
         let post = [], elem, popped, prep, pre, ele;
         let stack = [{ value: "(", type: 4, pre: 0 }];
         let arr = this.value;
@@ -171,10 +128,8 @@ class Mexp {
                     break;
             }
         }
-        return new Mexp(post);
-    }
-    static Exception(message) {
-        this.message = message;
+
+        this.value = post;
     }
     static addToken(tokens) {
         for (let i = 0; i < tokens.length; i++) {
@@ -246,7 +201,7 @@ class Mexp {
                 if (i > 0 &&
                     i < nodes.length - 1 &&
                     nodes[i + 1].type === 1 &&
-                    (nodes[i - 1].type === 1 || nodes[i - 1].type === 6)) { throw new Mexp.Exception('Unexpected Space'); }
+                    (nodes[i - 1].type === 1 || nodes[i - 1].type === 6)) { throw 'Unexpected Space'; }
                 continue;
             }
             let cToken = node.token;
@@ -260,7 +215,7 @@ class Mexp {
                 if (ptc[j] === 0) {
                     if ([0, 2, 3, 4, 5, 9, 11, 12, 13].indexOf(cType) !== -1) {
                         if (allowed[cType] !== true) {
-                            throw new Mexp.Exception(cToken + ' is not allowed after ' + prevKey);
+                            throw `${cToken} is not allowed after ${prevKey}`;
                         }
                         str.push(closingParObj);
                         allowed = type1;
@@ -271,7 +226,7 @@ class Mexp {
                     break;
             }
             if (allowed[cType] !== true) {
-                throw new Mexp.Exception(cToken + ' is not allowed after ' + prevKey);
+                throw `${cToken} is not allowed after ${prevKey}`;
             }
             if (asterick[cType] === true) {
                 cType = 2;
@@ -333,7 +288,7 @@ class Mexp {
                     break;
                 case 5:
                     if (!bracToClose) {
-                        throw new Mexp.Exception('Closing parenthesis are more than opening one, wait What!!!');
+                        throw 'Closing parenthesis are more than opening one, wait What!!!';
                     }
                     bracToClose--;
                     allowed = type1;
@@ -343,7 +298,7 @@ class Mexp {
                     break;
                 case 6:
                     if (pre.hasDec) {
-                        throw new Mexp.Exception('Two decimals are not allowed in one number');
+                        throw 'Two decimals are not allowed in one number';
                     }
                     if (pre.type !== 1) {
                         pre = {
@@ -444,23 +399,23 @@ class Mexp {
                 break; // if it is not zero so before ptc also cant be zero
         }
         if (allowed[5] !== true) {
-            throw new Mexp.Exception('complete the expression');
+            throw 'complete the expression';
         }
         while (bracToClose--) {
             str.push(closingParObj);
         }
 
         str.push(closingParObj);
-        return new Mexp(str);
+
+        this.value = str;
     }
-    static eval(str, tokens, obj) {
+    static eval(str) {
         if (!eRegex.test(str)) return str;
-        if (typeof tokens === "undefined") return this.lex(str).toPostfix().postfixEval();
-        if (typeof obj === "undefined") {
-            if (typeof tokens.length !== "undefined") return this.lex(str, tokens).toPostfix().postfixEval();
-            return this.lex(str).toPostfix().postfixEval(tokens);
-        }
-        return this.lex(str, tokens).toPostfix().postfixEval(obj);
+
+        this.lex(str)
+        this.toPostfix()
+        // console.log(this.value)
+        return this.postfixEval();
     }
 }
 
@@ -746,7 +701,7 @@ let type0 = {
     12: true,
     13: true,
     14: true
-} // type2:true,type4:true,type9:true,type11:true,type21:true,type22
+}
 
 let type1 = {
     0: true,
@@ -763,7 +718,7 @@ let type1 = {
     11: true,
     12: true,
     13: true
-} // type3:true,type5:true,type7:true,type23
+}
 
 let type3Asterick = {
     0: true,
@@ -774,7 +729,7 @@ let type3Asterick = {
     8: true,
     12: true,
     13: true
-} // type_5:true,type_7:true,type_23
+}
 
 let newAr = [
     [],
@@ -822,10 +777,9 @@ function match(str1, str2, i, x) {
 
 function tokenize(string) {
     let nodes = []
-    let length = string.length
     let key, x, y
-    for (let i = 0; i < length; i++) {
-        if (i < length - 1 && string[i] === ' ' && string[i + 1] === ' ') {
+    for (let i = 0; i < string.length; i++) {
+        if (i < string.length - 1 && string[i] === ' ' && string[i + 1] === ' ') {
             continue
         }
         key = ''
@@ -845,7 +799,7 @@ function tokenize(string) {
         }
         i += key.length - 1
         if (key === '') {
-            throw new Mexp.Exception("Can't understand after " + string.slice(i))
+            throw `Can't understand after ${string.slice(i)}`
         }
         let index = token.indexOf(key)
         nodes.push({
@@ -859,5 +813,3 @@ function tokenize(string) {
     }
     return nodes
 }
-
-export default Mexp
