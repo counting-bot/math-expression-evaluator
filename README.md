@@ -1,4 +1,6 @@
-# math-expression-evaluator
+# **Replaced by [counting-bot/expr-eval](https://github.com/counting-bot/expr-eval)**
+
+## math-expression-evaluator
 An extremely efficient, flexible and amazing evaluator for Math expression in Javascript.([Documentation](http://bugwheels94.github.io/math-expression-evaluator/))
 
 ## Use cases
